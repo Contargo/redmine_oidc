@@ -2,11 +2,6 @@ require 'openid_connect'
 
 class OidcController < ApplicationController
 
-  ISSUER_URL = 'https://example.com/auth/realms/example'
-
-  CLIENT_ID = 'client-id'
-  CLIENT_SECRET = 'client-secret'
-
   def login
     oidc_client.redirect_uri = oidc_callback_url
 
@@ -25,8 +20,8 @@ class OidcController < ApplicationController
     access_token = oidc_client.access_token!
     _id_token_ = decode_id access_token.id_token
     _id_token_.verify!(
-        issuer: ISSUER_URL,
-        client_id: CLIENT_ID,
+        issuer: RedmineOidc.settings['issuer_url'],
+        client_id: RedmineOidc.settings['client_id'],
         nonce: stored_nonce
     )
     @id_token = _id_token_
@@ -35,8 +30,8 @@ class OidcController < ApplicationController
 
   def oidc_client
     @oidc_client ||= OpenIDConnect::Client.new(
-        identifier: CLIENT_ID,
-        secret: CLIENT_SECRET,
+        identifier: RedmineOidc.settings['client_id'],
+        secret: RedmineOidc.settings['client_secret'],
         authorization_endpoint: oidc_config.authorization_endpoint,
         token_endpoint: oidc_config.token_endpoint,
         userinfo_endpoint: oidc_config.userinfo_endpoint,
@@ -46,7 +41,7 @@ class OidcController < ApplicationController
   end
 
   def oidc_config
-    @oidc_config ||= OpenIDConnect::Discovery::Provider::Config.discover! ISSUER_URL
+    @oidc_config ||= OpenIDConnect::Discovery::Provider::Config.discover! RedmineOidc.settings['issuer_url']
 
   rescue OpenIDConnect::Discovery::DiscoveryFailed => e
 

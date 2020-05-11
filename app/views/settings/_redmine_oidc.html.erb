@@ -1,0 +1,12 @@
+<p>
+  <label><%= l(:label_redmine_oidc_issuer_url) %></label>
+  <%= url_field_tag 'settings[issuer_url]', @settings["issuer_url"], :size => 50 %>
+</p>
+<p>
+  <label><%= l(:label_redmine_oidc_client_id) %></label>
+  <%= text_field_tag 'settings[client_id]', @settings["client_id"], :size => 50 %>
+</p>
+<p>
+  <label><%= l(:label_redmine_oidc_client_secret) %></label>
+  <%= text_field_tag 'settings[client_secret]', @settings["client_secret"], :size => 50 %>
+</p>

@@ -1,5 +1,5 @@
-# English strings go here for Rails i18n
-en:
+# German strings go here for Rails i18n
+de:
   label_redmine_oidc_issuer_url: Issuer URL
   label_redmine_oidc_client_id: Client ID
   label_redmine_oidc_client_secret: Client Secret
