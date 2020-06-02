@@ -1,0 +1,62 @@
+name: "Redmine OIDC: CI/CD"
+
+on:
+  push:
+    branches:
+    - master
+    - ci/**
+  pull_request:
+
+jobs:
+  pipeline:
+    name: Pipeline
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        # We test against the latest Redmine stable and the master versions
+        redmine: ['4.1-stable', 'master']
+
+    steps:
+    # We checkout Redmine itself, since plugins can only be tested inside a running Redmine
+    # installation.
+    - name: Checkout Redmine ${{ matrix.redmine }}
+      uses: actions/checkout@v2
+      with:
+        repository: redmine/redmine
+        ref: ${{ matrix.redmine }}
+
+    # Checkout the actual plugin to the plugin path.
+    - name: Checkout Redmine OIDC Plugin
+      uses: actions/checkout@v2
+      with:
+        path: plugins/redmine_oidc
+
+    # We are currently only testing on Ruby 2.5
+    - name: Setup Ruby
+      uses: actions/setup-ruby@v1
+      with:
+        ruby-version: 2.5
+
+    # Recreate caches between CI/CD iterations
+    - name: Recreate Ruby Bundler cache
+      uses: actions/cache@v1
+      with:
+        path: vendor/bundle
+        key: ${{ runner.os }}-bundler-${{ hashFiles('**/Gemfile*') }}
+        restore-keys: |
+          ${{ runner.os }}-bundler-
+
+    # We run our test against the SQLite3 database. Since Redmine installs
+    # adapters according to database configuration, we provide our own CI/CD
+    # database configuration.
+    - name: Set test database configuration
+      run: cp plugins/redmine_oidc/.github/workflows/ci/config/database.yml config/database.yml
+
+    # Install all bundler dependencies.
+    - name: Install dependencies
+      run: bundle install --path ./vendor/bundle
+
+    # Run plugin tests.
+    - name: Run tests
+      run: bundle exec rails redmine:plugins:test
