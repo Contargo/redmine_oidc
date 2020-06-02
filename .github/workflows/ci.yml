@@ -50,6 +50,8 @@ jobs:
     # We run our test against the SQLite3 database. Since Redmine installs
     # adapters according to database configuration, we provide our own CI/CD
     # database configuration.
+    - name: Install test database dependencies (SQLite3)
+      run: sudo apt-get install -y libsqlite3-dev
     - name: Set test database configuration
       run: cp plugins/redmine_oidc/.github/workflows/ci/config/database.yml config/database.yml
 
