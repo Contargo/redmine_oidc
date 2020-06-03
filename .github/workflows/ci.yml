@@ -61,4 +61,4 @@ jobs:
 
     # Run plugin tests.
     - name: Run tests
-      run: bundle exec rails redmine:plugins:test
+      run: bundle exec rails db:migrate redmine:plugins:test
