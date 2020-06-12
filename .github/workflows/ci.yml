@@ -51,7 +51,7 @@ jobs:
     # adapters according to database configuration, we provide our own CI/CD
     # database configuration.
     - name: Install test database dependencies (SQLite3)
-      run: sudo apt-get install -y libsqlite3-dev
+      run: sudo apt-get update -y && sudo apt-get install -y libsqlite3-dev
     - name: Set test database configuration
       run: cp plugins/redmine_oidc/.github/workflows/ci/config/database.yml config/database.yml
 
