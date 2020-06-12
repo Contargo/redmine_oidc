@@ -5,6 +5,7 @@ on:
     branches:
     - master
     - ci/**
+    - work-in-progress
   pull_request:
 
 jobs:
