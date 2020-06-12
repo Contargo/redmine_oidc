@@ -1,5 +1,18 @@
+# OpenID Connect Authentication for Redmine
+# Copyright (C) 2020 Contargo GmbH & Co. KG
+#
 # German strings go here for Rails i18n
-de:
-  label_redmine_oidc_issuer_url: Issuer URL
-  label_redmine_oidc_client_id: Client ID
-  label_redmine_oidc_client_secret: Client Secret
+en:
+  oidc:
+    settings:
+      enabled: OpenID Connect aktivieren
+      issuer_url: Issuer URL
+      issuer_url_placeholder: https://login.example.com
+      client_id: Client ID
+      client_id_placeholder: example-client
+      client_secret: Client secret
+      client_secret_placeholder: example-client-secret
+      scope: OpenID Connect Scopes
+      scope_placeholder: openid profile email
+      unique_id_claim: Eindeutiger OpenID Connect Claim Name
+      unique_id_claim_placeholder: sub

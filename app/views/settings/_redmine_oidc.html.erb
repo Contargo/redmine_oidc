@@ -1,12 +1,29 @@
+<%
+  oidc_settings =  RedmineOidc.settings
+  oidc_settings.validate
+%>
 <p>
-  <label><%= l(:label_redmine_oidc_issuer_url) %></label>
-  <%= url_field_tag 'settings[issuer_url]', @settings["issuer_url"], :size => 50 %>
+  <%= label_tag 'settings[enabled]', l('oidc.settings.enabled') %>
+  <%= check_box_tag 'settings[enabled]', 1, oidc_settings.enabled %>
 </p>
 <p>
-  <label><%= l(:label_redmine_oidc_client_id) %></label>
-  <%= text_field_tag 'settings[client_id]', @settings["client_id"], :size => 50 %>
+  <%= label_tag 'settings[issuer_url]', l('oidc.settings.issuer_url') %>
+  <%= text_field_tag 'settings[issuer_url]', oidc_settings.issuer_url, size: 60, placeholder: l('oidc.settings.issuer_url_placeholder') %>
 </p>
 <p>
-  <label><%= l(:label_redmine_oidc_client_secret) %></label>
-  <%= text_field_tag 'settings[client_secret]', @settings["client_secret"], :size => 50 %>
+  <%= label_tag 'settings[client_id]', l('oidc.settings.client_id') %>
+  <%= text_field_tag 'settings[client_id]', oidc_settings.client_id, size: 60, placeholder: l('oidc.settings.client_id_placeholder') %>
 </p>
+<p>
+  <%= label_tag 'settings[client_secret]', l('oidc.settings.client_secret') %>
+  <%= password_field_tag 'settings[client_secret]', oidc_settings.client_secret, size: 60, placeholder: l('oidc.settings.client_secret_placeholder') %>
+</p>
+<p>
+  <%= label_tag 'settings[scope]', l('oidc.settings.scope') %>
+  <%= text_field_tag 'settings[scope]', oidc_settings.scope, size: 60, placeholder: l('oidc.settings.scope_placeholder') %>
+</p>
+<p>
+  <%= label_tag 'settings[unique_id_claim]', l('oidc.settings.unique_id_claim') %>
+  <%= text_field_tag 'settings[unique_id_claim]', oidc_settings.unique_id_claim, size: 60, placeholder: l('oidc.settings.unique_id_claim_placeholder') %>
+</p>
+<%= error_messages_for oidc_settings %>
