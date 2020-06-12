@@ -7,8 +7,6 @@ Redmine::Plugin.register :redmine_oidc do
   version '0.0.1'
   url 'https://github.com/Contargo/redmine_oidc'
   author_url 'https://contargo.net'
-  settings :default => {:issuer_url => false,
-                        :client_id => false,
-                        :client_secret => false},
+  settings :default => {:enabled => false},
            :partial => 'settings/redmine_oidc'
 end

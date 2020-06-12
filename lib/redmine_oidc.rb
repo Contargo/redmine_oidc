@@ -1,3 +1,8 @@
+# OpenID Connect Authentication for Redmine
+# Copyright (C) 2020 Contargo GmbH & Co. KG
+#
 module RedmineOidc
-  def self.settings() Setting[:plugin_redmine_oidc].stringify_keys end
+  def self.settings
+    RedmineOidc::Settings.current
+  end
 end
