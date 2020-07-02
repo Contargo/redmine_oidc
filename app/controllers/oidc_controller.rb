@@ -1,72 +1,103 @@
+# OpenID Connect Authentication for Redmine
+# Copyright (C) 2020 Contargo GmbH & Co. KG
+#
 require 'openid_connect'
 
 class OidcController < ApplicationController
 
+  skip_before_action :check_if_login_required
+
   def login
-    oidc_client.redirect_uri = oidc_callback_url
-
-    nonce = new_nonce
-
-    settings = RedmineOidc.settings
-    scope = oidc_config.scopes_supported & [:openid, :email, :profile, :address].collect(&:to_s)
-    scope = scope & settings.scope.split unless (settings.scope.nil? || settings.scope.empty?)
-
-    redirect_to oidc_client.authorization_uri(
-        nonce: nonce,
-        state: nonce,
-        scope: scope,
-    )
+    oidc_session = OidcSession.spawn(session)
+    oidc_session.verify!
+  rescue OpenIDConnect::ResponseObject::IdToken::ExpiredToken
+    begin
+      oidc_session.refresh!
+    rescue Rack::OAuth2::Client::Error
+    end
+  rescue Exception
+  ensure
+    redirect_to OidcSession.spawn(session).authorization_endpoint
   end
 
   def callback
-    settings = RedmineOidc.settings
-
-    oidc_client.redirect_uri = oidc_callback_url
-    oidc_client.authorization_code = params[:code]
-    access_token = oidc_client.access_token!
-    _id_token_ = decode_id access_token.id_token
-    _id_token_.verify!(
-        issuer: settings.issuer_url,
-        client_id: settings.client_id,
-        nonce: stored_nonce
-    )
-    @id_token = _id_token_
+    oidc_session = OidcSession.spawn(session)
+    oidc_session.update!(params)
+    oidc_session.acquire!
+    login_user
   end
+
+  def logout
+    oidc_session = OidcSession.spawn(session)
+    if oidc_session.complete?
+      oidc_session.destroy!
+      logout_user
+      reset_session
+      redirect_to oidc_session.end_session_endpoint
+    else
+      redirect_to oidc_local_logout_url
+    end
+  end
+
+  def local_logout
+    logout_user
+    reset_session
+    redirect_to oidc_login_url
+  end
+
   private
 
-  def oidc_client
-    settings = RedmineOidc.settings
-
-    @oidc_client ||= OpenIDConnect::Client.new(
-        identifier: settings.client_id,
-        secret: settings.client_secret,
-        authorization_endpoint: oidc_config.authorization_endpoint,
-        token_endpoint: oidc_config.token_endpoint,
-        userinfo_endpoint: oidc_config.userinfo_endpoint,
-        jwks_uri: oidc_config.jwks_uri,
-        scopes_supported: oidc_config.scopes_supported
-    )
+  def login_user
+    @settings = RedmineOidc.settings
+    @id_token = OidcSession.spawn(session).decoded_id_token
+    user = User.find_by_oidc_identifier(@id_token[@settings.unique_id_claim])
+    if user.nil?
+      create_user
+    else
+      update_user(user)
+    end
   end
 
-  def oidc_config
-    @oidc_config ||= OpenIDConnect::Discovery::Provider::Config.discover! RedmineOidc.settings.issuer_url
-
-  rescue OpenIDConnect::Discovery::DiscoveryFailed => e
-
+  def create_user
+    user = User.new do |u|
+      u.oidc_identifier = @id_token[@settings.unique_id_claim]
+      u.login = @id_token['preferred_username']
+      u.firstname = @id_token['given_name']
+      u.lastname = @id_token['family_name']
+      u.mail = @id_token['email']
+      u.random_password
+      u.register
+    end
+    register_user(user)
   end
 
-  def new_nonce
-    session[:nonce] = SecureRandom.hex(16)
+  def update_user(user)
+    user.update_last_login_on!
+    if session[:back_url]
+      params[:back_url] = session[:back_url]
+      session[:back_url] = nil
+    end
+    successful_authentication(user)
   end
 
-  def stored_nonce
-    n = session[:nonce]
-    session.delete(:nonce)
-    n
+  def register_user(user)
+    user.activate
+    user.last_login_on = Time.now
+    if user.save
+      successful_authentication(user)
+    else
+      user.errors.full_messages.each do |error|
+        logger.warn "Could not create user #{user.login}: #{error}"
+      end
+    end
   end
 
-  def decode_id(id_token)
-    OpenIDConnect::ResponseObject::IdToken.decode id_token, oidc_config.jwks
+  def successful_authentication(user)
+    logger.info "Successful authentication for '#{user.login}' from #{request.remote_ip} at #{Time.now.utc}"
+    oidc_session = OidcSession.spawn(session)
+    self.logged_user = user
+    oidc_session.save!
+    redirect_back_or_default my_page_path
   end
 
 end

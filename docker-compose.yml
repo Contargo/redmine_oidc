@@ -1,13 +1,13 @@
-version: '3.0'
+version: '3.1'
 services:
   auth:
     image: jboss/keycloak:4.8.3.Final
     ports:
-    - "8080:8080"
+    - 8080:8080
     environment:
-    - "KEYCLOAK_USER=admin"
-    - "KEYCLOAK_PASSWORD=admin"
-    - "KEYCLOAK_IMPORT=/opt/jboss/keycloak/import/redmine.json"
+    - KEYCLOAK_USER=admin
+    - KEYCLOAK_PASSWORD=admin
+    - KEYCLOAK_IMPORT=/opt/jboss/keycloak/import/redmine.json
     volumes:
     # Import realm and default user
-    - './docker/import/redmine.json:/opt/jboss/keycloak/import/redmine.json:ro'
+    - ./docker/import/redmine.json:/opt/jboss/keycloak/import/redmine.json:ro
