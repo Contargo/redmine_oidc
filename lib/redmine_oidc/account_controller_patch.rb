@@ -20,3 +20,7 @@ module RedmineOidc
 
   end
 end
+
+unless AccountController.included_modules.include?(RedmineOidc::AccountControllerPatch)
+  AccountController.prepend(RedmineOidc::AccountControllerPatch)
+end

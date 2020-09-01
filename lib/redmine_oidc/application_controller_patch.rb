@@ -39,3 +39,7 @@ module RedmineOidc
     end
   end
 end
+
+unless ApplicationController.included_modules.include?(RedmineOidc::ApplicationControllerPatch)
+  ApplicationController.prepend(RedmineOidc::ApplicationControllerPatch)
+end

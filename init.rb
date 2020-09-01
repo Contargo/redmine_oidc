@@ -1,5 +1,4 @@
 require 'redmine_oidc'
-require 'redmine_oidc/application_controller_patch'
 
 Redmine::Plugin.register :redmine_oidc do
   name 'Redmine OpenId Connect plugin'
@@ -10,9 +9,4 @@ Redmine::Plugin.register :redmine_oidc do
   author_url 'https://contargo.net'
   settings :default => {:enabled => false},
            :partial => 'settings/redmine_oidc'
-end
-
-Rails.configuration.to_prepare do
-  ApplicationController.prepend(RedmineOidc::ApplicationControllerPatch)
-  AccountController.prepend(RedmineOidc::AccountControllerPatch)
 end
