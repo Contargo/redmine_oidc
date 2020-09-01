@@ -4,6 +4,7 @@
 Rails.configuration.to_prepare do
   require_dependency 'redmine_oidc/account_controller_patch'
   require_dependency 'redmine_oidc/application_controller_patch'
+  require_dependency 'redmine_oidc/avatars_helper_patch'
 end
 
 module RedmineOidc
