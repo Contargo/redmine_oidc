@@ -16,3 +16,12 @@ en:
       scope_placeholder: openid profile email
       unique_id_claim: Eindeutiger OpenID Connect Claim Name
       unique_id_claim_placeholder: sub
+      realm_access_roles: Kommaseparierte Liste der autorisierten Rollen
+      realm_admin_role: Administrationsrolle
+    error:
+      permissions:
+        heading: >-
+          Zugriff verweigert
+        sorry: >-
+          Es tut uns leid, aber Ihre Berechtigungen reichen nicht aus, um die
+          von Ihnen angeforderte Applikation anzuzeigen.

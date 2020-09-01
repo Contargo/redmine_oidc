@@ -56,15 +56,31 @@ class OidcSession
   end
 
   def verify!
-    oidc_decode_id.verify!(
+    decoded_tokens[:id].verify!(
       issuer: settings.issuer_url,
       client_id: settings.client_id,
       nonce: oidc_nonce,
     )
   end
 
-  def decoded_id_token
-    oidc_decode_id.raw_attributes
+  def oidc_identifier
+    @oidc_indentifier ||= decoded_tokens[:id].raw_attributes[settings.unique_id_claim]
+  end
+
+  def user_attributes
+    attributes = decoded_tokens[:id].raw_attributes
+    {
+      oidc_identifier: oidc_identifier,
+      login: attributes['preferred_username'],
+      firstname: attributes['given_name'],
+      lastname: attributes['family_name'],
+      mail: attributes['email'],
+      admin: roles.include?(realm_admin_role),
+    }
+  end
+
+  def authorized?
+    not realm_access_roles.disjoint?(roles)
   end
 
   def save!
@@ -78,6 +94,25 @@ class OidcSession
     @refresh_token = access_token.refresh_token
     @id_token = access_token.id_token
     save!
+  end
+
+  def roles
+    @roles ||= decoded_tokens[:access].raw_attributes['realm_access']['roles'].map(&:downcase).to_set
+  end
+
+  def realm_access_roles
+    @realm_access_roles ||= settings.realm_access_roles.parse_csv.map(&:downcase).map(&:strip).to_set
+  end
+
+  def realm_admin_role
+    @realm_admin_role ||= settings.realm_admin_role.strip.downcase
+  end
+
+  def decoded_tokens
+    @decoded_tokens ||= {
+      access: decode_token(@access_token),
+      id: decode_token(@id_token),
+    }
   end
 
   def end_session_query
@@ -109,9 +144,9 @@ class OidcSession
     @scope ||= scope & settings.scope.split unless (settings.scope.nil? || settings.scope.empty?)
   end
 
-  def oidc_decode_id
-    raise Exception unless @id_token.present?
-    @decoded_id ||= OpenIDConnect::ResponseObject::IdToken.decode @id_token, oidc_config.jwks
+  def decode_token(token)
+    raise Exception unless token.present?
+    OpenIDConnect::ResponseObject::IdToken.decode(token, oidc_config.jwks)
   end
 
   def oidc_config

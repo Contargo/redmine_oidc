@@ -24,7 +24,9 @@ class OidcController < ApplicationController
     oidc_session = OidcSession.spawn(session)
     oidc_session.update!(params)
     oidc_session.acquire!
-    login_user
+    oidc_session.authorized? ? login_user : lock_user
+  rescue Exception
+    redirect_to OidcSession.spawn(session).authorization_endpoint
   end
 
   def logout
@@ -47,10 +49,15 @@ class OidcController < ApplicationController
 
   private
 
+  def lock_user
+    user = User.find_by_oidc_identifier(OidcSession.spawn(session).oidc_identifier)
+    user.lock! unless user.nil?
+  end
+
   def login_user
     @settings = RedmineOidc.settings
-    @id_token = OidcSession.spawn(session).decoded_id_token
-    user = User.find_by_oidc_identifier(@id_token[@settings.unique_id_claim])
+    @oidc_session = OidcSession.spawn(session)
+    user = User.find_by_oidc_identifier(@oidc_session.oidc_identifier)
     if user.nil?
       create_user
     else
@@ -59,45 +66,37 @@ class OidcController < ApplicationController
   end
 
   def create_user
-    user = User.new do |u|
-      u.oidc_identifier = @id_token[@settings.unique_id_claim]
-      u.login = @id_token['preferred_username']
-      u.firstname = @id_token['given_name']
-      u.lastname = @id_token['family_name']
-      u.mail = @id_token['email']
-      u.random_password
-      u.register
-    end
-    register_user(user)
+    user = User.create(@oidc_session.user_attributes)
+    user.activate
+    user.random_password
+    user.last_login_on = Time.now
+    user.register
+    user.save ? successful_login(user) : unsuccessful_login(user)
   end
 
   def update_user(user)
+    user.update(@oidc_session.user_attributes)
+    user.activate
     user.update_last_login_on!
     if session[:back_url]
       params[:back_url] = session[:back_url]
       session[:back_url] = nil
     end
-    successful_authentication(user)
+    user.save ? successful_login(user) : unsuccessful_login(user)
   end
 
-  def register_user(user)
-    user.activate
-    user.last_login_on = Time.now
-    if user.save
-      successful_authentication(user)
-    else
-      user.errors.full_messages.each do |error|
-        logger.warn "Could not create user #{user.login}: #{error}"
-      end
-    end
-  end
-
-  def successful_authentication(user)
+  def successful_login(user)
     logger.info "Successful authentication for '#{user.login}' from #{request.remote_ip} at #{Time.now.utc}"
     oidc_session = OidcSession.spawn(session)
     self.logged_user = user
     oidc_session.save!
     redirect_back_or_default my_page_path
+  end
+
+  def unsuccessful_login(user)
+    user.errors.full_messages.each do |error|
+      logger.warn "Could not create user #{user.login}: #{error}"
+    end
   end
 
 end

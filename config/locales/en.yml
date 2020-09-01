@@ -16,3 +16,13 @@ en:
       scope_placeholder: openid profile email
       unique_id_claim: Uniquely identifying claim
       unique_id_claim_placeholder: sub
+      realm_access_roles: Comma-separated list of authorizated roles
+      realm_admin_role: Administration role
+    error:
+      permissions:
+        heading: >-
+          Access was denied
+        sorry: >-
+          We're sorry but access to the current resource was prevented,
+          since you currently do not have the proper authority to use this
+          application.

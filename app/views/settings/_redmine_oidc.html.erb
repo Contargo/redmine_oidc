@@ -26,4 +26,12 @@
   <%= label_tag 'settings[unique_id_claim]', l('oidc.settings.unique_id_claim') %>
   <%= text_field_tag 'settings[unique_id_claim]', oidc_settings.unique_id_claim, size: 60, placeholder: l('oidc.settings.unique_id_claim_placeholder') %>
 </p>
+<p>
+  <%= label_tag 'settings[realm_access_roles]', l('oidc.settings.realm_access_roles') %>
+  <%= text_field_tag 'settings[realm_access_roles]', oidc_settings.realm_access_roles, size: 60 %>
+</p>
+<p>
+  <%= label_tag 'settings[realm_admin_role]', l('oidc.settings.realm_admin_role') %>
+  <%= text_field_tag 'settings[realm_admin_role]', oidc_settings.realm_admin_role, size: 60 %>
+</p>
 <%= error_messages_for oidc_settings %>
