@@ -38,7 +38,7 @@ class RedmineOidcSettingsTest < ActiveSupport::TestCase
   end
 
   test 'Settings are valid if complete' do
-    with_oidc_settings({ 'enabled' => true, 'issuer_url' => 'https://login.example.com', 'client_id' => 'client', 'client_secret' => 'secret', 'scope' => 'openid' }) do
+    with_oidc_settings({ 'enabled' => true, 'issuer_url' => 'https://login.example.com', 'client_id' => 'client', 'client_secret' => 'secret', 'scope' => 'openid', 'unique_id_claim' => 'sub', 'realm_access_roles' => 'ROLES/ADMIN,ROLES/USER', 'realm_admin_role' => 'ROLES/ADMIN'}) do
       settings = RedmineOidc::Settings.current
       assert settings.valid?
       assert settings.errors.empty?
