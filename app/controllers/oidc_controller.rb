@@ -52,6 +52,7 @@ class OidcController < ApplicationController
   def lock_user
     user = User.find_by_oidc_identifier(OidcSession.spawn(session).oidc_identifier)
     user.lock! unless user.nil?
+    render 'lock_user', :status => :unauthorized
   end
 
   def login_user
