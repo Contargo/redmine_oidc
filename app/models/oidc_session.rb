@@ -75,6 +75,7 @@ class OidcSession
       firstname: attributes['given_name'],
       lastname: attributes['family_name'],
       mail: attributes['email'],
+      avatar_url: attributes['picture'],
       admin: roles.include?(realm_admin_role),
     }
   end
