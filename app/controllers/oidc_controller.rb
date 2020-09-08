@@ -57,7 +57,6 @@ class OidcController < ApplicationController
   end
 
   def login_user
-    @settings = RedmineOidc.settings
     @oidc_session = OidcSession.spawn(session)
     user = User.find_by_oidc_identifier(@oidc_session.oidc_identifier)
     if user.nil?
