@@ -26,3 +26,12 @@ en:
           We're sorry but access to the current resource was prevented,
           since you currently do not have the proper authority to use this
           application.
+      server:
+        heading: >-
+          We were unable to handle your login request
+        sorry: >-
+          We're very sorry for the inconvenience, but there seems to have been
+          a problem on our side when handling your request.
+        retry: >-
+          It could be a temporary failure, so you might want to try again to
+          see if it works.

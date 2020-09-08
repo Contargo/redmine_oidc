@@ -25,8 +25,9 @@ class OidcController < ApplicationController
     oidc_session.update!(params)
     oidc_session.acquire!
     oidc_session.authorized? ? login_user : lock_user
-  rescue Exception
-    redirect_to OidcSession.spawn(session).authorization_endpoint
+  rescue Exception => exception
+    logger.error "#{exception.class}: #{exception.message}"
+    render 'callback', :status => :loop_detected
   end
 
   def logout

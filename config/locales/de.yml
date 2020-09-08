@@ -25,3 +25,12 @@ en:
         sorry: >-
           Es tut uns leid, aber Ihre Berechtigungen reichen nicht aus, um die
           von Ihnen angeforderte Applikation anzuzeigen.
+      server:
+        heading: >-
+          Ihre Login-Anfrage konnte nicht durchgeführt werden
+        sorry: >-
+          Wir bitten um Entschuldigung, aber bei der Verarbeitung Ihrer Anfrage
+          ist ein Fehler aufgetreten.
+        retry: >-
+          Da es sich um einen vorrücbergehenden Fehler handeln kann, können
+          Sie versuchen, die Seite einfach erneut zu laden.
