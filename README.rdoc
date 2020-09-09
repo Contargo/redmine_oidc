@@ -1,1 +1,168 @@
 = redmine_oidc
+
+Developed for and used with the open source identity and access management tool
+{Keycloak}[https://www.keycloak.org/].
+
+If you are not familiar with OpenID Connect visit
+{OpenID Connect explained}[https://connect2id.com/learn/openid-connect]
+as a primer.
+
+
+== Setup
+
+=== Migrations
+
+Run migrations either implicitly in the context of a Capistrano deployment or
+explicitly with
+
+  bundle exec rails redmine:plugins:migrate NAME=redmine_oidc
+
+
+=== Fill reference
+
+
+=== Environment setup
+
+* Default URL
+    routes.default_url_options[:protocol] = 'https'
+    routes.default_url_options[:host] = 'localhost:3000'
+* Configure Redis as session (and cache) storage
+    config.cache_store = :redis_cache_store, {
+      url: 'redis://127.0.0.1:6379/0',
+      connect_timeout:    30, # Defaults to 20 seconds
+      read_timeout:       1,  # Defaults to 1 second
+      write_timeout:      1,  # Defaults to 1 second
+      reconnect_attempts: 1,  # Defaults to 0
+    }
+    config.session_store :cache_store, key: '_redmine_session'
+  Session timeout is no longer determined by redmine. Thus, setting the
+  +expire_after+ argument in
+    config.session_store :cache_store, key: '_redmine_session', expire_after: 10.minutes
+  will not have any effect.
+  Instead, you should set token expiry in your Keycloak realm settings
+  * <tt>SSO Session Idle</tt>
+  * <tt>SSO Session Max</tt>
+
+
+=== Plugin configuration
+
+issuer_url::
+    A discovery URL to your realm
+
+    Example: +https://keycloak.your-company.com/auth/realms/your-realm+
+client_id::
+    The client ID in ID provider, that is responsible for authentication.
+
+    Example: +redmine+
+client_secret::
+    The client secret to allow access by your trusted agent, i.e. a browser.
+
+    Example: +3618459c-f1f6-11ea-af1a-c7ab620b9443+
+scope::
+    The scopes which are requested from your ID provider.
+
+    Example: openid profile email
+unique_id_claim::
+    The claim which will be compared with the +oidc_identifier+ in the +users+
+    table to identify the corresponding Redmine user.
+
+    Example: +sub+
+realm_access_roles::
+    Comma separated list of roles which make an authenticated user an authorized
+    Redmine user. The roles are compared with the access token claim
+    +realm_access.roles+.
+
+    Example: ROLES/REDMINE/ADMIN,ROLES/REDMINE/USER
+realm_admin_role::
+    Dedicated admin role which is looked for in the access tokes claim
+    +realm_access.roles+.
+
+    Example: ROLES/REDMINE/ADMIN
+
+
+== Design decisions
+
+This section explains some design decisions and principles.
+
+
+=== Used Libraries
+
+[{OpenID Connect Server & Client Library}[https://github.com/nov/openid_connect]]
+         The OpenID Connect login process of +redmine_oidc+ makes use of the
+         client library parts of +openid_connect+ and benefits from its request,
+         token validation and decoding capabilities.
+
+
+=== Monkey Patching
+
+In order to implement another authentication process such as OpenID Connect we
+need to circumvent Redmine's default login workflow. Fortunately, Ruby modules
+allow monkey patching by design. Nevertheless, we decided to keep the patch code
+as lean as possible. So, instead of patching the Redmine +AccountController+ by
+inheriting and extending the class, both the +ApplicationController+ and
++AccountController+ are only patched where absolutely necessary to achieve the
+workflow we need. They redirect to a dedicated +OidcController+ which takes care
+of the OpenID Connect process. The +OidcController+ inherits
++ApplicationController+ since we don't need any of the user/password or OpenID
+authentication implementations of +AccountController+.
+
+Besides the controller logic we need to patch the avatar acquisition, since we
+want to fetch a user's avatar from a configurable claim and only fall back to
+gravatar, if the claim url doesn't exist. Some other Redmine extensions like
++redmine_people+ and +redmine_contacts_helpdesk+ do also patch the
++AvatarsHelper+. They +include+ their modifications. We +prepend+ ours and thus
+win the battle for preference. But only until another plugin will make use of
++prepend+ and exploit its alphabetical position.
+
+
+=== Session
+
+We decided to put the OpenID Connect session information into the Redmine/Rails
+session and not into the database persistence. Session data is volatile
+information where access speed is more important than durability. Besides that
+there is no schema necessary for session data. A key-value storage with
+with adequate memory is sufficient.
+As a consequence the default cookie session store won't work due to its storage
+limit of 4k. The solution is another little piece of infrastructure,
+{Redis}[https://redis.io/], which can also be used as cache backend.
+
+
+=== Migrations
+
+Two additional fields will be added to the +users+ table by migrations
+automatically.
+
+oidc_identifier:: reference to a dedicated unique identifier claim
+avatar_url:: A url to a user's avatar expected in the +picture+ claim
+
+We specify +oidc_identifier+ as a reference to a unique oidc identifier. This
+can be any universally identifier claim of your OpenID Connect provider. Any
+other default user attributes, like +login+, +email+ or +lastname+ are prone to
+change.
+
+As companies with a centralized authentication system like Keycloak might also
+provide their own avatar resource, we added an +avatar_url+ field to users. This
+is filled during the login process with a dedicated configurable claim that
+refers to the user's image by a URL.
+
+Both fields are added directly to the table +users+, since a 1:1 relation to a
+dedicated table does not provide any advantage.
+
+
+=== Environment
+
+Redmine provides a hostname field in the +settings+ table, which can be set in
+the Settings section by a Redmine administrator. It's perfectly integrated in
+the routing methods of Rails controllers but not available in our
++OidcSession+.
+Instantiating a +UrlHelper+ in +OidcSession+ needs a default protocol and host
+
+  routes.default_url_options[:protocol] = 'https'
+  routes.default_url_options[:host]
+
+to be set in the environment to provide proper FQDNs in generated URLs.
+One could also fetch the +host_name+ from an active +Settings+ record. But we
+think it's a good idea to keep environmental configurations out of the
+database. In addition it helps, when you work with productive database dumps in
+a test or development system where the hostname set in the database is not what
+you need in your environment.
