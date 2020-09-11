@@ -1,6 +1,8 @@
 # OpenID Connect Authentication for Redmine
 # Copyright (C) 2020 Contargo GmbH & Co. KG
 #
+# We use alias_method here to prepend AvartarsHelper patches introduced in the
+# same way by the redmine_people plugin, for example.
 module RedmineOidc
   module AvatarsHelperPatch
 
