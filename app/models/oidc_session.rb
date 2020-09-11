@@ -5,8 +5,10 @@ class OidcSession
   include ActiveModel::Model
   include ActiveModel::Serialization
 
-  attr_accessor :session, :state, :nonce, :code, :session_state
+  attr_accessor :session, :redirect_uri, :state, :nonce, :code, :session_state
   attr_accessor :id_token, :access_token, :refresh_token
+
+  private_class_method :new
 
   SESSION_KEY = :oidc_session
 
@@ -18,7 +20,9 @@ class OidcSession
     end
   end
 
-  def authorization_endpoint
+  def authorization_endpoint(redirect_uri:)
+    @redirect_uri = redirect_uri
+    save!
     oidc_client.authorization_uri(
       nonce: oidc_nonce,
       state: oidc_nonce,
@@ -26,9 +30,9 @@ class OidcSession
     )
   end
 
-  def end_session_endpoint
+  def end_session_endpoint(post_logout_redirect_uri:)
     return if oidc_config.end_session_endpoint.nil?
-    oidc_config.end_session_endpoint + '?' + end_session_query.to_param
+    oidc_config.end_session_endpoint + '?' + end_session_query(post_logout_redirect_uri)
   end
 
   def update!(params)
@@ -88,8 +92,6 @@ class OidcSession
     @session[SESSION_KEY] = self.serializable_hash
   end
 
-  private
-
   def parse(access_token)
     @access_token = access_token.access_token
     @refresh_token = access_token.refresh_token
@@ -116,15 +118,15 @@ class OidcSession
     }
   end
 
-  def end_session_query
+  def end_session_query(uri)
     query = {
       'session_state' => @session_state,
-      'post_logout_redirect_uri' => routes.oidc_local_logout_url,
+      'post_logout_redirect_uri' => uri,
     }
     if @id_token.present?
       query['id_token_hint'] = id_token
     end
-    query
+    query.to_param
   end
 
   def oidc_client
@@ -136,7 +138,7 @@ class OidcSession
         userinfo_endpoint: oidc_config.userinfo_endpoint,
         jwks_uri: oidc_config.jwks_uri,
         scopes_supported: oidc_config.scopes_supported,
-        redirect_uri: routes.oidc_callback_url,
+        redirect_uri: @redirect_uri,
     )
   end
 
@@ -167,12 +169,9 @@ class OidcSession
     @settings ||= RedmineOidc.settings
   end
 
-  def routes
-    @routes ||= Rails.application.routes.url_helpers
-  end
-
   def attributes
     {
+      'redirect_uri' => nil,
       'state' => nil,
       'nonce' => nil,
       'code' => nil,

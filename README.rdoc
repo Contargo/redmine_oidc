@@ -147,22 +147,3 @@ refers to the user's image by a URL.
 
 Both fields are added directly to the table +users+, since a 1:1 relation to a
 dedicated table does not provide any advantage.
-
-
-=== Environment
-
-Redmine provides a hostname field in the +settings+ table, which can be set in
-the Settings section by a Redmine administrator. It's perfectly integrated in
-the routing methods of Rails controllers but not available in our
-+OidcSession+.
-Instantiating a +UrlHelper+ in +OidcSession+ needs a default protocol and host
-
-  routes.default_url_options[:protocol] = 'https'
-  routes.default_url_options[:host]
-
-to be set in the environment to provide proper FQDNs in generated URLs.
-One could also fetch the +host_name+ from an active +Settings+ record. But we
-think it's a good idea to keep environmental configurations out of the
-database. In addition it helps, when you work with productive database dumps in
-a test or development system where the hostname set in the database is not what
-you need in your environment.

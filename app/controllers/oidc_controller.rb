@@ -17,7 +17,7 @@ class OidcController < ApplicationController
     end
   rescue Exception
   ensure
-    redirect_to OidcSession.spawn(session).authorization_endpoint
+    redirect_to OidcSession.spawn(session).authorization_endpoint(redirect_uri: oidc_callback_url)
   end
 
   def callback
@@ -36,7 +36,7 @@ class OidcController < ApplicationController
       oidc_session.destroy!
       logout_user
       reset_session
-      redirect_to oidc_session.end_session_endpoint
+      redirect_to oidc_session.end_session_endpoint(post_logout_redirect_uri: oidc_local_logout_url)
     else
       redirect_to oidc_local_logout_url
     end
