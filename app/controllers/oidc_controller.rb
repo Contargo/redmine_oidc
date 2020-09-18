@@ -71,7 +71,6 @@ class OidcController < ApplicationController
     user.activate
     user.random_password
     user.last_login_on = Time.now
-    user.register
     user.save ? successful_login(user) : unsuccessful_login(user)
   end
 
