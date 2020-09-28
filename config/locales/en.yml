@@ -16,8 +16,10 @@ en:
       scope_placeholder: openid profile email
       unique_id_claim: Uniquely identifying claim
       unique_id_claim_placeholder: sub
-      realm_access_roles: Comma-separated list of authorizated roles
-      realm_admin_role: Administration role
+      roles_claim: Roles claim
+      roles_claim_placeholder: roles
+      access_roles: Space-separated list of authorized roles
+      admin_role: Administration role
     error:
       permissions:
         heading: >-

@@ -60,7 +60,7 @@ class OidcSession
   end
 
   def verify!
-    decoded_tokens[:id].verify!(
+    decoded_id_token.verify!(
       issuer: settings.issuer_url,
       client_id: settings.client_id,
       nonce: oidc_nonce,
@@ -68,11 +68,11 @@ class OidcSession
   end
 
   def oidc_identifier
-    @oidc_indentifier ||= decoded_tokens[:id].raw_attributes[settings.unique_id_claim]
+    @oidc_indentifier ||= decoded_id_token.raw_attributes[settings.unique_id_claim]
   end
 
   def user_attributes
-    attributes = decoded_tokens[:id].raw_attributes
+    attributes = decoded_id_token.raw_attributes
     {
       oidc_identifier: oidc_identifier,
       login: attributes['preferred_username'],
@@ -80,17 +80,19 @@ class OidcSession
       lastname: attributes['family_name'],
       mail: attributes['email'],
       avatar_url: attributes['picture'],
-      admin: roles.include?(realm_admin_role),
+      admin: roles.include?(admin_role),
     }
   end
 
   def authorized?
-    not realm_access_roles.disjoint?(roles)
+    not access_roles.disjoint?(roles)
   end
 
   def save!
     @session[SESSION_KEY] = self.serializable_hash
   end
+
+  private
 
   def parse(access_token)
     @access_token = access_token.access_token
@@ -100,22 +102,15 @@ class OidcSession
   end
 
   def roles
-    @roles ||= decoded_tokens[:access].raw_attributes['realm_access']['roles'].map(&:downcase).to_set
+    @roles ||= decoded_id_token.raw_attributes[settings.roles_claim].map(&:downcase).to_set
   end
 
-  def realm_access_roles
-    @realm_access_roles ||= settings.realm_access_roles.parse_csv.map(&:downcase).map(&:strip).to_set
+  def access_roles
+    @access_roles ||= settings.access_roles.split(' ').map(&:downcase).map(&:strip).to_set
   end
 
-  def realm_admin_role
-    @realm_admin_role ||= settings.realm_admin_role.strip.downcase
-  end
-
-  def decoded_tokens
-    @decoded_tokens ||= {
-      access: decode_token(@access_token),
-      id: decode_token(@id_token),
-    }
+  def admin_role
+    @admin_role ||= settings.admin_role.strip.downcase
   end
 
   def end_session_query(uri)
@@ -147,9 +142,9 @@ class OidcSession
     @scope ||= scope & settings.scope.split unless (settings.scope.nil? || settings.scope.empty?)
   end
 
-  def decode_token(token)
-    raise Exception unless token.present?
-    OpenIDConnect::ResponseObject::IdToken.decode(token, oidc_config.jwks)
+  def decoded_id_token
+    raise Exception unless @id_token.present?
+    @decoded_id_token ||= OpenIDConnect::ResponseObject::IdToken.decode(@id_token, oidc_config.jwks)
   end
 
   def oidc_config

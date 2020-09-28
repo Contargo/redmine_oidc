@@ -6,11 +6,21 @@ module RedmineOidc
   class Settings
     include ActiveModel::Model
 
-    VALID_KEYS = %w(enabled issuer_url client_id client_secret scope unique_id_claim realm_access_roles realm_admin_role)
+    VALID_KEYS = %w(
+      enabled
+      issuer_url
+      client_id
+      client_secret
+      scope
+      unique_id_claim
+      roles_claim
+      access_roles
+      admin_role
+    )
 
     attr_accessor *VALID_KEYS.map(&:to_sym)
 
-    validates :issuer_url, :client_id, :client_secret, :scope, :unique_id_claim, :realm_access_roles, :realm_admin_role, presence: true, if: :enabled
+    validates :issuer_url, :client_id, :client_secret, :scope, :unique_id_claim, :roles_claim, :access_roles, :admin_role, presence: true, if: :enabled
     validates_url :issuer_url, if: :enabled
 
     class << self

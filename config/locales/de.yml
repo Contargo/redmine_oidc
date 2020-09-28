@@ -16,8 +16,10 @@ en:
       scope_placeholder: openid profile email
       unique_id_claim: Eindeutiger OpenID Connect Claim Name
       unique_id_claim_placeholder: sub
-      realm_access_roles: Kommaseparierte Liste der autorisierten Rollen
-      realm_admin_role: Administrationsrolle
+      roles_claim: Rollen-Claim
+      roles_claim_placeholder: roles
+      access_roles: Leerzeichen-separierte Liste der autorisierten Rollen
+      admin_role: Administrationsrolle
     error:
       permissions:
         heading: >-
