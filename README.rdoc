@@ -18,9 +18,6 @@ explicitly with
   bundle exec rails redmine:plugins:migrate NAME=redmine_oidc
 
 
-=== Fill reference
-
-
 === Environment setup
 
 * Default URL
@@ -67,17 +64,54 @@ unique_id_claim::
     table to identify the corresponding Redmine user.
 
     Example: +sub+
-realm_access_roles::
-    Comma separated list of roles which make an authenticated user an authorized
+roles_claim::
+    The claim which provides the set of access roles.
+
+    Example: +roles+
+access_roles::
+    Space separated list of roles which make an authenticated user an authorized
     Redmine user. The roles are compared with the access token claim
     +realm_access.roles+.
 
-    Example: ROLES/REDMINE/ADMIN,ROLES/REDMINE/USER
-realm_admin_role::
+    Example: ROLES/REDMINE/ADMIN ROLES/REDMINE/USER
+admin_role::
     Dedicated admin role which is looked for in the access tokes claim
     +realm_access.roles+.
 
     Example: ROLES/REDMINE/ADMIN
+
+
+== Mapping users
+
+If you use this plugin on a vanilla Redmine any user who gains access to Redmine
+for the first time will be created in the +user+ table. Its reference to the
+OIDC provider subject, i.e. the content of the unique ID claim, is stored in the
+field +oidc_identifier+. This is the _only_ attribute which maps a Redmine user
+to the corresponding OIDC provider subject.
+As a consequence, if you enable this plugin on a Redmine instance with a filled
++user+ table, you have to take care of connecting Redmine and OIDC provider
+users by yourself, e.g. by running a respective migration. This migration might
+use
+* +users.login+
+* or a combination of +users.firstname+ and +users.lastname+
+* or +email_addresses.address+
+
+as the currently and hopefully unique and immutable identifier to match
+users. Nevertheless, any of them should finally be superseded by a valid uuid,
+which has to be stored in +users.oidc_identifier+.
+
+
+== Avatars
+
+If you activate the usage of Gravatar user icons by checking
+* Administration
+  * Settings
+    * Display
+      * Use Gravatar user icons
+
+this plugin tries to retrieve the avatar URL from the ID token +picture+ claim,
+before falling back to Gravatar as the provider. +picture+ is the standard claim
+and thus not configurable.
 
 
 == Design decisions
@@ -147,3 +181,19 @@ refers to the user's image by a URL.
 
 Both fields are added directly to the table +users+, since a 1:1 relation to a
 dedicated table does not provide any advantage.
+
+
+== Development
+
+=== SWD (Simple Web Discovery)
+
+{SWD}[https://github.com/nov/swd] is a client library which is used by the
+{OpendIDConnect}[https://github.com/nov/openid_connect] library to process web
+discovery. By default it accesses resources via +URI::HTTPS+, i.e. secure
+connections, which makes perfect sense in production context. In a local
+development environment we do not have or want to use secure communication. To
+achieve this set
+  SWD.url_builder = URI::HTTP
+
+in a respective environment configuration,
+e.g. +./config/environments/development.rb+.
