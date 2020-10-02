@@ -5,23 +5,23 @@ require 'redmine_oidc/settings'
 class RedmineOidcSettingsTest < ActiveSupport::TestCase
 
   test 'Settings are valid if OIDC is disabled' do
-    with_oidc_settings({ 'enabled' => false }) do
+    with_oidc_settings({'enabled' => false}) do
       settings = RedmineOidc::Settings.current
       assert settings.valid?
     end
   end
 
   test 'Settings are invalid if missing issuer URL' do
-    with_oidc_settings({ 'enabled' => true }) do
+    with_oidc_settings({'enabled' => true}) do
       settings = RedmineOidc::Settings.current
       assert settings.invalid?
       assert_not_nil settings.errors[:issuer_url]
     end
   end
 
-
   test 'Settings are invalid if missing client ID/secret' do
-    with_oidc_settings({'enabled' => true,'issuer_url' => 'https://login.example.com'}) do
+    with_oidc_settings({'enabled' => true,
+                        'issuer_url' => 'https://login.example.com'}) do
       settings = RedmineOidc::Settings.current
       assert settings.invalid?
       assert_not_nil settings.errors[:client_id]
@@ -30,7 +30,11 @@ class RedmineOidcSettingsTest < ActiveSupport::TestCase
   end
 
   test 'Settings are invalid if missing scope' do
-    with_oidc_settings({ 'enabled' => true, 'issuer_url' => 'https://login.example.com', 'client_id' => 'client', 'client_secret' => 'secret' }) do
+    with_oidc_settings({'enabled' => true,
+                        'issuer_url' => 'https://login.example.com',
+                        'client_id' => 'client',
+                        'client_secret' =>
+                        'secret' }) do
       settings = RedmineOidc::Settings.current
       assert settings.invalid?
       assert_not_nil settings.errors[:scope]
@@ -38,7 +42,16 @@ class RedmineOidcSettingsTest < ActiveSupport::TestCase
   end
 
   test 'Settings are valid if complete' do
-    with_oidc_settings({ 'enabled' => true, 'issuer_url' => 'https://login.example.com', 'client_id' => 'client', 'client_secret' => 'secret', 'scope' => 'openid', 'unique_id_claim' => 'sub', 'realm_access_roles' => 'ROLES/ADMIN,ROLES/USER', 'realm_admin_role' => 'ROLES/ADMIN'}) do
+    with_oidc_settings({'enabled' => true,
+                        'issuer_url' =>
+                        'https://login.example.com',
+                        'client_id' => 'client',
+                        'client_secret' => 'secret',
+                        'scope' => 'openid',
+                        'unique_id_claim' => 'sub',
+                        'roles_claim' => 'roles',
+                        'access_roles' => 'ROLES/ADMIN,ROLES/USER',
+                        'admin_role' => 'ROLES/ADMIN'}) do
       settings = RedmineOidc::Settings.current
       assert settings.valid?
       assert settings.errors.empty?
