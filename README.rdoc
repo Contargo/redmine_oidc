@@ -181,19 +181,3 @@ refers to the user's image by a URL.
 
 Both fields are added directly to the table +users+, since a 1:1 relation to a
 dedicated table does not provide any advantage.
-
-
-== Development
-
-=== SWD (Simple Web Discovery)
-
-{SWD}[https://github.com/nov/swd] is a client library which is used by the
-{OpendIDConnect}[https://github.com/nov/openid_connect] library to process web
-discovery. By default it accesses resources via +URI::HTTPS+, i.e. secure
-connections, which makes perfect sense in production context. In a local
-development environment we do not have or want to use secure communication. To
-achieve this set
-  SWD.url_builder = URI::HTTP
-
-in a respective environment configuration,
-e.g. +./config/environments/development.rb+.

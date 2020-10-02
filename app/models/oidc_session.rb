@@ -126,14 +126,14 @@ class OidcSession
 
   def oidc_client
     @oidc_client ||= OpenIDConnect::Client.new(
-        identifier: settings.client_id,
-        secret: settings.client_secret,
-        authorization_endpoint: oidc_config.authorization_endpoint,
-        token_endpoint: oidc_config.token_endpoint,
-        userinfo_endpoint: oidc_config.userinfo_endpoint,
-        jwks_uri: oidc_config.jwks_uri,
-        scopes_supported: oidc_config.scopes_supported,
-        redirect_uri: @redirect_uri,
+      identifier: settings.client_id,
+      secret: settings.client_secret,
+      authorization_endpoint: oidc_config.authorization_endpoint,
+      token_endpoint: oidc_config.token_endpoint,
+      userinfo_endpoint: oidc_config.userinfo_endpoint,
+      jwks_uri: oidc_config.jwks_uri,
+      scopes_supported: oidc_config.scopes_supported,
+      redirect_uri: @redirect_uri,
     )
   end
 
@@ -148,7 +148,9 @@ class OidcSession
   end
 
   def oidc_config
-    @oidc_config ||= OpenIDConnect::Discovery::Provider::Config.discover! settings.issuer_url
+    @oidc_config ||= with_configured_url_builder do
+      OpenIDConnect::Discovery::Provider::Config.discover! settings.issuer_url
+    end
   rescue OpenIDConnect::Discovery::DiscoveryFailed => e
   end
 
@@ -175,6 +177,25 @@ class OidcSession
       'access_token' => nil,
       'refresh_token' => nil,
     }
+  end
+
+  ##
+  # Set temporary URL builder scheme
+  #
+  # The client library {SWD}[https://github.com/nov/swd] is used by the
+  # {OpendIDConnect}[https://github.com/nov/openid_connect] library to process
+  # web discovery. By default it accesses resources via +URI::HTTPS+, i.e.
+  # secure connections, which makes perfect sense in a production context. In a
+  # local development environment we do not have or want to use secure
+  # communication. To achieve this we set the url builder based on the issuer
+  # url scheme. We also reset the url builder to its previous value, since SWD
+  # is a singleton and thus, might be set elsewhere.
+  def with_configured_url_builder
+    cached_url_builder = SWD.url_builder
+    SWD.url_builder = URI.scheme_list[URI(settings.issuer_url).scheme.upcase]
+    result = yield
+    SWD.url_builder = cached_url_builder
+    return result
   end
 
 end
