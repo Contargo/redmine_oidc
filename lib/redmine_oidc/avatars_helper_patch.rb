@@ -6,7 +6,7 @@
 module RedmineOidc
   module AvatarsHelperPatch
 
-    def self.prepended(base)
+    def self.included(base)
       base.class_eval do
         include InstanceMethods
 
@@ -31,5 +31,5 @@ module RedmineOidc
 end
 
 unless AvatarsHelper.included_modules.include?(RedmineOidc::AvatarsHelperPatch)
-  AvatarsHelper.prepend(RedmineOidc::AvatarsHelperPatch)
+  AvatarsHelper.include(RedmineOidc::AvatarsHelperPatch)
 end
