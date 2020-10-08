@@ -17,7 +17,7 @@ module RedmineOidc
 
     module InstanceMethods
       def avatar_with_oidc(user, options = {})
-        if RedmineOidc.settings.enabled and user.avatar_url.present?
+        if RedmineOidc.settings.enabled && user.is_a?(User) && user.avatar_url.present?
           options[:class] = GravatarHelper::DEFAULT_OPTIONS[:class] + " " + options[:class] if options[:class]
           [:class, :alt, :title].each {|opt| options[opt] = h(options[opt])}
           image_tag(h(user.avatar_url), options)
