@@ -5,6 +5,7 @@ module RedmineOidc
   # Simple wrapper class around the Redmine Settings, to allow validation
   class Settings
     include ActiveModel::Model
+    include ActiveModel::Serialization
 
     VALID_KEYS = %w(
       enabled
@@ -27,10 +28,22 @@ module RedmineOidc
       # Obtain an instance from the current Redmine configuration
       def current
         settings_hash = ::Setting.plugin_redmine_oidc
-        settings_hash = settings_hash.reject { |k,_| !VALID_KEYS.include? k }
+        settings_hash = settings_hash.reject { |k,_| !VALID_KEYS.include? k.to_s }
 
         new(settings_hash)
       end
+    end
+
+    def attributes
+      VALID_KEYS.map {|key| [key, nil]}.to_h
+    end
+
+    def merge(settings)
+      self.class.new(to_h.merge(settings.to_h) { |key, v1, v2| v2.present? ? v2 : v1 })
+    end
+
+    def to_h
+      serializable_hash
     end
 
   end
