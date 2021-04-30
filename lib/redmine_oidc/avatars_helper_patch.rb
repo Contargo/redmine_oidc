@@ -19,8 +19,9 @@ module RedmineOidc
       def avatar_with_oidc(user, options = {})
         if RedmineOidc.settings.enabled && user.is_a?(User) && user.avatar_url.present?
           options[:class] = GravatarHelper::DEFAULT_OPTIONS[:class] + " " + options[:class] if options[:class]
+          options = GravatarHelper::DEFAULT_OPTIONS.merge(options)
           [:class, :alt, :title].each {|opt| options[opt] = h(options[opt])}
-          image_tag(h(user.avatar_url), options)
+          image_tag(h(user.avatar_url), options.except(:rating, :default, :ssl))
         else
           avatar_without_oidc(user, options)
         end
