@@ -16,7 +16,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 # German strings go here for Rails i18n
-en:
+de:
   oidc:
     settings:
       enabled: OpenID Connect aktivieren
