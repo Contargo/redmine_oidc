@@ -34,6 +34,8 @@ de:
       roles_claim_placeholder: roles
       access_roles: Leerzeichen-separierte Liste der autorisierten Rollen
       admin_role: Administrationsrolle
+      session_check_enabled: Session Check aktivieren
+      session_check_users_csv: Komma-separierte Liste der Logins mit Session Check (* = alle)
     error:
       permissions:
         heading: >-
@@ -50,3 +52,8 @@ de:
         retry: >-
           Da es sich um einen vorrücbergehenden Fehler handeln kann, können
           Sie versuchen, die Seite einfach erneut zu laden.
+    warning:
+      session_expired: >-
+        Ihre Login-Session ist abgelaufen. Falls Sie gerade einen Text editieren,
+        kopieren Sie diesen bitte temporär an eine andere Stelle, da dieser bei
+        der nächsten Seitenaktualisierung potenziell verloren geht.

@@ -38,4 +38,14 @@
   <%= label_tag 'settings[admin_role]', l('oidc.settings.admin_role') %>
   <%= text_field_tag 'settings[admin_role]', oidc_settings.admin_role, size: 60 %>
 </p>
+<p>
+  <%= label_tag 'settings[session_check_enabled]', l('oidc.settings.session_check_enabled') %>
+  <%= check_box_tag 'settings[session_check_enabled]', 1, oidc_settings.session_check_enabled %>
+  BETA
+</p>
+<p>
+  <%= label_tag 'settings[session_check_users_csv]', l('oidc.settings.session_check_users_csv') %>
+  <%= text_field_tag 'settings[session_check_users_csv]', oidc_settings.session_check_users_csv, size: 60, placeholder: 'emusterfrau,jdoe' %>
+  BETA
+</p>
 <%= error_messages_for oidc_settings %>

@@ -15,15 +15,17 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-Rails.configuration.to_prepare do
-  require_dependency 'redmine_oidc/account_controller_patch'
-  require_dependency 'redmine_oidc/application_controller_patch'
-  require_dependency 'redmine_oidc/avatars_helper_patch'
-  require_dependency 'redmine_oidc/hooks'
-end
-
 module RedmineOidc
-  def self.settings
-    RedmineOidc::Settings.current
+  class Hooks < Redmine::Hook::ViewListener
+    def view_layouts_base_body_bottom(context={})
+      settings = RedmineOidc.settings
+      return unless settings.enabled \
+                    && settings.session_check_enabled \
+                    && (settings.session_check_users.include?('*') || settings.session_check_users.include?(User.current.login))
+      context[:oidc_session] = ::OidcSession.spawn(context[:controller].session)
+      context[:controller].send(:render_to_string, {
+        partial: 'hooks/view_layouts_base_body_bottom',
+        locals: context})
+    end
   end
 end

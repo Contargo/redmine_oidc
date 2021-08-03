@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<!--
+OpenID Connect Authentication for Redmine
+Copyright (C) 2020-2021 Contargo GmbH & Co. KG
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along
+with this program; if not, write to the Free Software Foundation, Inc.,
+51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+-->
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Redmine Check Session Iframe</title>
+  <script type="text/javascript">
+    var state = "unchanged";
+    var clientId = "<%= RedmineOidc.settings.client_id %>";
+    var checkInterval = 5*1000;
+    var targetOrigin = new URL("<%= RedmineOidc.settings.issuer_url %>").origin;
+    var sessionState = "<%= @oidc_session.session_state %>";
+    var refreshTokenExpirationTimestamp = <%= @oidc_session.refresh_token_expiration_timestamp %>;
+    var idTokenExpirationTimestamp = <%= @oidc_session.id_token_expiration_timestamp %>;
+    var message = clientId + " " + sessionState;
+
+    function checkSession() {
+        var identityProviderCheckSessionIframe = window.parent.document.getElementById("identityProviderCheckSessionIframe").contentWindow;
+        identityProviderCheckSessionIframe.postMessage(message, targetOrigin);
+    }
+
+    window.addEventListener("message", receiveMessage, false);
+    function receiveMessage(event) {
+        if (event.origin !== targetOrigin) {
+            return alert("Wrong target origin: " + targetOrigin);
+        }
+        state = event.data;
+        if ((state === "changed" ||
+             isTokenExpired(refreshTokenExpirationTimestamp)) && isTokenExpired(idTokenExpirationTimestamp)) {
+            parent.window.clearInterval(parent.window.intervalId);
+            return alert("<%= l('oidc.warning.session_expired') %>");
+        }
+    }
+
+    function isTokenExpired(token) {
+        return token < currentTimestamp() ? true : false;
+    }
+
+    function currentTimestamp() {
+        if (!Date.now) {
+            Date.now = function() { return new Date().getTime(); }
+        }
+        return Math.floor(Date.now() / 1000)
+    }
+  </script>
+</head>
+<body></body>
+</html>

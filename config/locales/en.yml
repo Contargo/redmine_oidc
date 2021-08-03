@@ -34,6 +34,8 @@ en:
       roles_claim_placeholder: roles
       access_roles: Space-separated list of authorized roles
       admin_role: Administration role
+      session_check_enabled: Enable session check
+      session_check_users_csv: Comma-separated list of logins with session check (* = all)
     error:
       permissions:
         heading: >-
@@ -51,3 +53,8 @@ en:
         retry: >-
           It could be a temporary failure, so you might want to try again to
           see if it works.
+    warning:
+      session_expired: >-
+        Your login session has expired. If you are currently editing a text,
+        please store your data temorarily elsewhere. Your text will most probably
+        be lost on the next site interaction.

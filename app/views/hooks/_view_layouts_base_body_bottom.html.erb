@@ -1,0 +1,18 @@
+<iframe id="redmineCheckSessionIframe" src="<%= oidc_check_session_iframe_path %>" style="display:none" onload="checkSessionPoll('redmineCheckSessionIframe')"></iframe>
+<iframe id="identityProviderCheckSessionIframe" src="<%= oidc_session.check_session_iframe %>" style="display:none" onload="checkSessionPoll('identityProviderCheckSessionIframe')"></iframe>
+<script type="text/javascript">
+  var intervalId;
+
+  checkSessionPoll = (function () {
+      var redmineCheckSessionIframeLoaded = false;
+      var identityProviderCheckSessionIframeLoaded = false;
+      return function(frame) {
+          if (frame == 'redmineCheckSessionIframe') redmineCheckSessionIframeLoaded = true;
+          if (frame == 'identityProviderCheckSessionIframe') identityProviderCheckSessionIframeLoaded = true;
+          if (redmineCheckSessionIframeLoaded && identityProviderCheckSessionIframeLoaded) {
+              var redmineCheckSessionIframe = document.getElementById('redmineCheckSessionIframe').contentWindow;
+              intervalId = setInterval(redmineCheckSessionIframe.checkSession, redmineCheckSessionIframe.checkInterval);
+          }
+      };
+  })();
+</script>

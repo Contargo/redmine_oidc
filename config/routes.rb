@@ -16,8 +16,9 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 Rails.application.routes.draw do
-  get 'oidc/login', :to => 'oidc#login', :as => 'oidc_login'
-  get 'oidc/callback', :to => 'oidc#callback', :as => 'oidc_callback'
-  get 'oidc/logout', :to => 'oidc#logout', :as => 'oidc_logout'
-  get 'oidc/local_logout', :to => 'oidc#local_logout', :as => 'oidc_local_logout'
+  get 'oidc/login', to: 'oidc#login', as: 'oidc_login'
+  get 'oidc/callback', to: 'oidc#callback', as: 'oidc_callback'
+  get 'oidc/logout', to: 'oidc#logout', as: 'oidc_logout'
+  get 'oidc/local_logout', to: 'oidc#local_logout', as: 'oidc_local_logout'
+  get 'oidc/check_session_iframe', to: 'oidc#check_session_iframe', as: 'oidc_check_session_iframe'
 end

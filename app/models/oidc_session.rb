@@ -49,6 +49,10 @@ class OidcSession
     oidc_config.end_session_endpoint + '?' + end_session_query(post_logout_redirect_uri)
   end
 
+  def check_session_iframe
+    oidc_config.check_session_iframe
+  end
+
   def update!(params)
     @session_state = params[:session_state]
     @code = params[:code]
@@ -96,6 +100,14 @@ class OidcSession
       avatar_url: attributes['picture'],
       admin: roles.include?(admin_role),
     }
+  end
+
+  def refresh_token_expiration_timestamp
+    decoded_refresh_token['exp']
+  end
+
+  def id_token_expiration_timestamp
+    decoded_id_token.raw_attributes['exp']
   end
 
   def authorized?
@@ -159,6 +171,11 @@ class OidcSession
   def decoded_id_token
     raise Exception unless @id_token.present?
     @decoded_id_token ||= OpenIDConnect::ResponseObject::IdToken.decode(@id_token, oidc_config.jwks)
+  end
+
+  def decoded_refresh_token
+    raise Exception unless @refresh_token.present?
+    @decoded_refresh_token ||= JSON::JWT.decode(@refresh_token, :skip_verification)
   end
 
   def oidc_config

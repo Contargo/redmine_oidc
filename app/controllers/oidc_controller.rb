@@ -62,6 +62,11 @@ class OidcController < ApplicationController
     redirect_to oidc_login_url
   end
 
+  def check_session_iframe
+    @oidc_session = OidcSession.spawn(session)
+    render layout: false
+  end
+
   private
 
   def lock_user

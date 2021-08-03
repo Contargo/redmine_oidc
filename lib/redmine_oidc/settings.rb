@@ -31,11 +31,21 @@ module RedmineOidc
       roles_claim
       access_roles
       admin_role
+      session_check_enabled
+      session_check_users_csv
     )
 
     attr_accessor *VALID_KEYS.map(&:to_sym)
 
-    validates :issuer_url, :client_id, :client_secret, :scope, :unique_id_claim, :roles_claim, :access_roles, :admin_role, presence: true, if: :enabled
+    validates :issuer_url,
+              :client_id,
+              :client_secret,
+              :scope,
+              :unique_id_claim,
+              :roles_claim,
+              :access_roles,
+              :admin_role,
+              presence: true, if: :enabled
     validates_url :issuer_url, if: :enabled
 
     class << self
@@ -58,6 +68,10 @@ module RedmineOidc
 
     def to_h
       serializable_hash
+    end
+
+    def session_check_users
+      @session_check_users ||= @session_check_users_csv.split(',').map(&:strip)
     end
 
   end
