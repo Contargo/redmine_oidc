@@ -31,7 +31,9 @@ class OidcController < ApplicationController
     end
   rescue Exception
   ensure
-    redirect_to OidcSession.spawn(session).authorization_endpoint(redirect_uri: oidc_callback_url)
+    redirect_to OidcSession.spawn(session).authorization_endpoint(
+                  redirect_uri: oidc_callback_url(back_url: params[:back_url])
+                )
   end
 
   def callback
@@ -97,10 +99,6 @@ class OidcController < ApplicationController
     user.update(@oidc_session.user_attributes)
     user.activate
     user.update_last_login_on!
-    if session[:back_url]
-      params[:back_url] = session[:back_url]
-      session[:back_url] = nil
-    end
     user.save ? successful_login(user) : unsuccessful_login(user)
   end
 

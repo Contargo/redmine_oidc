@@ -28,8 +28,7 @@ module RedmineOidc
         else
           url = url_for(controller: params[:controller], action: params[:action], id: params[:id], project_id: params[:project_id])
         end
-        session[:back_url] = url
-        redirect_to oidc_login_url
+        redirect_to oidc_login_path(back_url: url)
         return false
       end
     end
