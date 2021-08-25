@@ -26,19 +26,27 @@ explicitly with
 * Configure Redis as session (and cache) storage
     config.cache_store = :redis_cache_store, {
       url: 'redis://127.0.0.1:6379/0',
-      connect_timeout:    30, # Defaults to 20 seconds
-      read_timeout:       1,  # Defaults to 1 second
-      write_timeout:      1,  # Defaults to 1 second
-      reconnect_attempts: 1,  # Defaults to 0
+      reconnect_attempts: 1,
+      expires_in: 1.day,
+      race_condition_ttl: 3.seconds
     }
-    config.session_store :cache_store, key: '_redmine_session'
+    config.session_store :cache_store,
+                         key: '_redmine_session',
+                         path: config.relative_url_root || '/',
+                         secure: Rails.env.production?
+
   Session timeout is no longer determined by redmine. Thus, setting the
-  +expire_after+ argument in
-    config.session_store :cache_store, key: '_redmine_session', expire_after: 10.minutes
-  will not have any effect.
+  +expire_after+ argument in +config.session_store+
+  or the global +expires_in+ in +config.cache_store+
+  will not have any effect, regarding the login time.
   Instead, you should set token expiry in your Keycloak realm settings
   * <tt>SSO Session Idle</tt>
   * <tt>SSO Session Max</tt>
+  Nevertheless you *should* set an +expires_in+ or +expire_after+ in your cache
+  or session config, respectively. This prevents the cache from being bloated
+  with obsolete sessions. The value can be set in correlation with the identity
+  provider's session timeout. But its not mandatory, since the Redis session
+  will be recreated as long as the identity provider's session is still valid.
 
 
 === Plugin configuration
