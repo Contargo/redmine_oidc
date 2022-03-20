@@ -59,6 +59,86 @@ module RedmineOidc
       false
     end
   end
+
+  def verify_authenticity_token # :doc:
+    mark_for_same_origin_verification!
+
+    if !verified_request?
+      if logger && log_warning_on_csrf_failure
+        if valid_request_origin?
+          logger.warn "Can't verify CSRF token authenticity. (#{find_current_user})"
+        else
+          logger.warn "HTTP Origin header (#{request.origin}) didn't match request.base_url (#{request.base_url})"
+        end
+      end
+      handle_unverified_request
+    end
+  end
+
+  AUTHENTICITY_TOKEN_LENGTH = 32
+
+  # Checks the client's masked token to see if it matches the
+  # session token. Essentially the inverse of
+  # +masked_authenticity_token+.
+  def valid_authenticity_token?(session, encoded_masked_token) # :doc:
+    if encoded_masked_token.nil? || encoded_masked_token.empty? || !encoded_masked_token.is_a?(String)
+      return false
+    end
+
+    begin
+      masked_token = decode_csrf_token(encoded_masked_token)
+    rescue ArgumentError # encoded_masked_token is invalid Base64
+      return false
+    end
+
+    # See if it's actually a masked token or not. In order to
+    # deploy this code, we should be able to handle any unmasked
+    # tokens that we've issued without error.
+
+    if masked_token.length == AUTHENTICITY_TOKEN_LENGTH
+      # This is actually an unmasked token. This is expected if
+      # you have just upgraded to masked tokens, but should stop
+      # happening shortly after installing this gem.
+      compare_with_real_token masked_token, session
+
+    elsif masked_token.length == AUTHENTICITY_TOKEN_LENGTH * 2
+      csrf_token = unmask_token(masked_token)
+
+      state = false
+      if compare_with_global_token(csrf_token, session)
+        state_global = true
+        logger.info "compare_with_global_token successful"
+      else
+        state_global = false
+        logger.warn "compare_with_global_token failed"
+      end
+      if compare_with_real_token(csrf_token, session)
+        state_real = true
+        logger.info "compare_with_real_token successful"
+      else
+        state_real = false
+        logger.warn "compare_with_real_token failed"
+      end
+      if valid_per_form_csrf_token?(csrf_token, session)
+        state_form = true
+        logger.info "valid_per_form_token successful"
+      else
+        state_form = false
+        logger.warn "valid_per_form_token failed"
+      end
+      state = state_global || state_real || state_form
+      if !state
+        user = find_current_user
+        logger.info "Parameter authenticity token (#{user}): " + encode_csrf_token(csrf_token)
+        logger.info "Session real authenticity token (#{user}): " + session[:_csrf_token]
+        logger.info "Session global authenticity token (#{user}): " + encode_csrf_token(global_csrf_token(session))
+      end
+      state
+    else
+      false # Token is malformed.
+    end
+  end
+
 end
 
 unless ApplicationController.included_modules.include?(RedmineOidc::ApplicationControllerPatch)
