@@ -37,15 +37,23 @@ module RedmineOidc
       return super unless RedmineOidc.settings.enabled
 
       begin
+        user = (session[:user_id] ? "uid=#{session[:user_id]}" : "anonymous")
+        logger.info "#{user}: Trying to verify ID token"
         oidc_session = OidcSession.spawn(session)
         oidc_session.verify!
-      rescue OpenIDConnect::ResponseObject::IdToken::ExpiredToken
+        logger.info "#{user}: ID token verified"
+      rescue OpenIDConnect::ResponseObject::IdToken::ExpiredToken => e
+        logger.info "#{user}: #{e.class} - #{e.message}"
         begin
+          logger.info "#{user}: Trying to refresh ID token."
           oidc_session.refresh!
-        rescue Rack::OAuth2::Client::Error
+          logger.info "#{user}: ID token refreshed"
+        rescue Rack::OAuth2::Client::Error => e
+          logger.info "#{user}: #{e.class} - #{e.message}"
           return true
         end
-      rescue Exception
+      rescue Exception => e
+        logger.warn "#{user}: #{e.class} - #{e.message}"
         return true
       end
       false
