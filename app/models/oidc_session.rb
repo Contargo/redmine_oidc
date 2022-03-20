@@ -169,12 +169,12 @@ class OidcSession
   end
 
   def decoded_id_token
-    raise Exception unless @id_token.present?
+    raise Exception.new("No ID token in session") unless @id_token.present?
     @decoded_id_token ||= OpenIDConnect::ResponseObject::IdToken.decode(@id_token, oidc_config.jwks)
   end
 
   def decoded_refresh_token
-    raise Exception unless @refresh_token.present?
+    raise Exception.new("No refresh token in session") unless @refresh_token.present?
     @decoded_refresh_token ||= JSON::JWT.decode(@refresh_token, :skip_verification)
   end
 
