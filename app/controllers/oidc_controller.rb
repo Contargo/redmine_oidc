@@ -22,18 +22,12 @@ class OidcController < ApplicationController
   skip_before_action :check_if_login_required
 
   def login
-    oidc_session = OidcSession.spawn(session)
-    oidc_session.verify!
-  rescue OpenIDConnect::ResponseObject::IdToken::ExpiredToken
-    begin
-      oidc_session.refresh!
-    rescue Rack::OAuth2::Client::Error
+    if !User.current.logged?
+      redirect_to OidcSession.spawn(session).authorization_endpoint(
+                    redirect_uri: oidc_callback_url(back_url: params[:back_url]))
+    else
+      redirect_to my_page_path
     end
-  rescue Exception
-  ensure
-    redirect_to OidcSession.spawn(session).authorization_endpoint(
-                  redirect_uri: oidc_callback_url(back_url: params[:back_url])
-                )
   end
 
   def callback
