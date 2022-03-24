@@ -37,23 +37,26 @@ module RedmineOidc
       return super unless RedmineOidc.settings.enabled
 
       begin
-        user = (session[:user_id] ? "uid=#{session[:user_id]}" : "anonymous")
-        logger.info "#{user}: Trying to verify ID token"
+        logging_prefix = "#{debug_info}"
+        logger.info "#{debug_info}: Trying to verify ID token"
         oidc_session = OidcSession.spawn(session)
         oidc_session.verify!
-        logger.info "#{user}: ID token verified"
+        logger.info "#{debug_info}: ID token verified"
       rescue OpenIDConnect::ResponseObject::IdToken::ExpiredToken => e
-        logger.info "#{user}: #{e.class} - #{e.message}"
+        logger.info "#{debug_info}: #{e.class} - #{e.message}"
         begin
-          logger.info "#{user}: Trying to refresh ID token."
+          logger.info "#{debug_info}: Trying to refresh ID token."
           oidc_session.refresh!
-          logger.info "#{user}: ID token refreshed"
+          logger.info "#{debug_info}: ID token refreshed"
         rescue Rack::OAuth2::Client::Error => e
-          logger.info "#{user}: #{e.class} - #{e.message}"
+          logger.info "#{debug_info}: #{e.class} - #{e.message}"
+          return true
+        rescue Exception => e
+          logger.warn "#{debug_info}: #{e.class} - #{e.message}"
           return true
         end
       rescue Exception => e
-        logger.warn "#{user}: #{e.class} - #{e.message}"
+        logger.warn "#{debug_info}: #{e.class} - #{e.message}"
         return true
       end
       false
@@ -65,7 +68,7 @@ module RedmineOidc
       if !verified_request?
         if logger && log_warning_on_csrf_failure
           if valid_request_origin?
-            logger.warn "Can't verify CSRF token authenticity. (#{find_current_user})"
+            logger.warn "#{debug_info}: Can't verify CSRF token authenticity. (#{find_current_user})"
           else
             logger.warn "HTTP Origin header (#{request.origin}) didn't match request.base_url (#{request.base_url})"
           end
@@ -106,36 +109,41 @@ module RedmineOidc
         state = false
         if compare_with_global_token(csrf_token, session)
           state_global = true
-          logger.info "compare_with_global_token successful"
+          logger.info "#{debug_info}: compare_with_global_token successful"
         else
           state_global = false
-          logger.warn "compare_with_global_token failed"
+          logger.warn "#{debug_info}: compare_with_global_token failed"
         end
         if compare_with_real_token(csrf_token, session)
           state_real = true
-          logger.info "compare_with_real_token successful"
+          logger.info "#{debug_info}: compare_with_real_token successful"
         else
           state_real = false
-          logger.warn "compare_with_real_token failed"
+          logger.warn "#{debug_info}: compare_with_real_token failed"
         end
         if valid_per_form_csrf_token?(csrf_token, session)
           state_form = true
-          logger.info "valid_per_form_token successful"
+          logger.info "#{debug_info}: valid_per_form_token successful"
         else
           state_form = false
-          logger.warn "valid_per_form_token failed"
+          logger.warn "#{debug_info}: valid_per_form_token failed"
         end
         state = state_global || state_real || state_form
         if !state
           user = find_current_user
-          logger.info "Parameter authenticity token (#{user}): " + encode_csrf_token(csrf_token)
-          logger.info "Session real authenticity token (#{user}): " + session[:_csrf_token]
-          logger.info "Session global authenticity token (#{user}): " + encode_csrf_token(global_csrf_token(session))
+          logger.info "#{debug_info} Parameter authenticity token: " + encode_csrf_token(csrf_token)
+          logger.info "#{debug_info} Session real authenticity token : " + session[:_csrf_token]
+          logger.info "#{debug_info} Session global authenticity token : " + encode_csrf_token(global_csrf_token(session))
         end
         state
       else
         false # Token is malformed.
       end
+    end
+
+    def debug_info
+      user = (session[:user_id] ? "#{session[:user_id]}" : "anonymous")
+      "uid=#{user}@session=#{session.id} requesting #{request.original_fullpath}"
     end
 
   end
