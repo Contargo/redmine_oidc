@@ -51,10 +51,18 @@ module RedmineOidc
         rescue Rack::OAuth2::Client::Error => e
           logger.info "#{debug_info}: #{e.class} - #{e.message}"
           return true
+        rescue HTTPClient::ConnectTimeoutError => e
+          logger.info "Ignoring HTTPClient::ConnectTimeoutError to avoid 422."
+          logger.info "#{debug_info}: #{e.class} - #{e.message} - #{e.backtrace}"
+          return false
         rescue Exception => e
           logger.warn "#{debug_info}: #{e.class} - #{e.message}"
           return true
         end
+      rescue HTTPClient::ConnectTimeoutError => e
+        logger.info "Ignoring HTTPClient::ConnectTimeoutError to avoid 422."
+        logger.info "#{debug_info}: #{e.class} - #{e.message} - #{e.backtrace}"
+        return false
       rescue Exception => e
         logger.warn "#{debug_info}: #{e.class} - #{e.message}"
         return true
