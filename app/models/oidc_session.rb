@@ -27,6 +27,7 @@ class OidcSession
   SESSION_KEY = :oidc_session
 
   def self.spawn(session)
+    SWD.cache = Rails.cache
     if session[SESSION_KEY].present?
       new(session[SESSION_KEY].merge({session: session}))
     else
