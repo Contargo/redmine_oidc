@@ -19,7 +19,7 @@ class OidcSession
   include ActiveModel::Model
   include ActiveModel::Serialization
 
-  attr_accessor :session, :redirect_uri, :state, :nonce, :code, :session_state
+  attr_accessor :session, :redirect_uri, :state, :nonce, :code, :session_state, :jwks
   attr_accessor :id_token, :access_token, :refresh_token
 
   private_class_method :new
@@ -171,7 +171,7 @@ class OidcSession
 
   def decoded_id_token
     raise Exception.new("No ID token in session") unless @id_token.present?
-    @decoded_id_token ||= OpenIDConnect::ResponseObject::IdToken.decode(@id_token, oidc_config.jwks)
+    @decoded_id_token ||= OpenIDConnect::ResponseObject::IdToken.decode(@id_token, JSON::JWK::Set.new(oidc_jwks))
   end
 
   def decoded_refresh_token
@@ -194,6 +194,10 @@ class OidcSession
     @nonce
   end
 
+  def oidc_jwks
+    @jwks ||= oidc_config.jwks.as_json
+  end
+
   def settings
     @settings ||= RedmineOidc.settings
   end
@@ -208,6 +212,7 @@ class OidcSession
       'id_token' => nil,
       'access_token' => nil,
       'refresh_token' => nil,
+      'jwks' => nil,
     }
   end
 
