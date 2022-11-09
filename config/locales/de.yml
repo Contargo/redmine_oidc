@@ -50,7 +50,7 @@ de:
           Wir bitten um Entschuldigung, aber bei der Verarbeitung Ihrer Anfrage
           ist ein Fehler aufgetreten.
         retry: >-
-          Da es sich um einen vorrücbergehenden Fehler handeln kann, können
+          Da es sich um einen vorrübergehenden Fehler handeln kann, können
           Sie versuchen, die Seite einfach erneut zu laden.
     warning:
       session_expired: >-
