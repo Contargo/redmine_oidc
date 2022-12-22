@@ -22,14 +22,14 @@ jobs:
     # We checkout Redmine itself, since plugins can only be tested inside a running Redmine
     # installation.
     - name: Checkout Redmine ${{ matrix.redmine }}
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         repository: redmine/redmine
         ref: ${{ matrix.redmine }}
 
     # Checkout the actual plugin to the plugin path.
     - name: Checkout Redmine OIDC Plugin
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         path: plugins/redmine_oidc
 
@@ -41,7 +41,7 @@ jobs:
 
     # Recreate caches between CI/CD iterations
     - name: Recreate Ruby Bundler cache
-      uses: actions/cache@v1
+      uses: actions/cache@v3
       with:
         path: vendor/bundle
         key: ${{ runner.os }}-bundler-${{ hashFiles('**/Gemfile*') }}
