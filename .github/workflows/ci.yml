@@ -33,11 +33,11 @@ jobs:
       with:
         path: plugins/redmine_oidc
 
-    # We are currently only testing on Ruby 2.6
+    # We are currently only testing on Ruby 2.7
     - name: Setup Ruby
       uses: ruby/setup-ruby@v1
       with:
-        ruby-version: 2.6
+        ruby-version: 2.7
 
     # Recreate caches between CI/CD iterations
     - name: Recreate Ruby Bundler cache
