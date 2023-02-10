@@ -14,9 +14,17 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
+      fail-fast: false
       matrix:
         # We test against the latest Redmine stable and the master versions
-        redmine: ['4.2-stable']
+        redmine:
+          - '4.2-stable'
+          - '5.0-stable'
+        ruby:
+          - '2.7'
+          - '3.1'
+        exclude:
+          - { redmine: '4.2-stable', ruby: '3.1' }
 
     steps:
     # We checkout Redmine itself, since plugins can only be tested inside a running Redmine
@@ -33,11 +41,10 @@ jobs:
       with:
         path: plugins/redmine_oidc
 
-    # We are currently only testing on Ruby 2.7
     - name: Setup Ruby
       uses: ruby/setup-ruby@v1
       with:
-        ruby-version: 2.7
+        ruby-version: ${{ matrix.ruby }}
 
     # Recreate caches between CI/CD iterations
     - name: Recreate Ruby Bundler cache
