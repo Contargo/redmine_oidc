@@ -17,8 +17,6 @@
 
 require File.expand_path('../../test_helper', __FILE__)
 
-require 'redmine_oidc/settings'
-
 class RedmineOidcSettingsTest < ActiveSupport::TestCase
 
   test 'Settings are valid if OIDC is disabled' do

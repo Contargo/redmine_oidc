@@ -15,7 +15,8 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-require 'redmine_oidc'
+require 'redmine'
+require_relative 'lib/redmine_oidc'
 
 Redmine::Plugin.register :redmine_oidc do
   name 'Redmine OpenId Connect plugin'
