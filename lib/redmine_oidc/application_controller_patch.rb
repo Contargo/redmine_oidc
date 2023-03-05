@@ -31,6 +31,8 @@ module RedmineOidc
         redirect_to oidc_login_path(back_url: url)
         return false
       end
+
+      true
     end
 
     def session_expired?
