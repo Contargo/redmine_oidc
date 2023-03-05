@@ -33,6 +33,7 @@ module RedmineOidc
       admin_role
       session_check_enabled
       session_check_users_csv
+      sudo_mode_reauthenticate
     )
 
     attr_accessor *VALID_KEYS.map(&:to_sym)

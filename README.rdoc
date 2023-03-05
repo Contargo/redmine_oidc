@@ -87,6 +87,10 @@ admin_role::
     +realm_access.roles+.
 
     Example: ROLES/REDMINE/ADMIN
+sudo_mode_reauthenticate::
+    If +sudo_mode+ is enabled in Redmine, require users to reauthenticate for
+    sensitive actions against the OIDC provider instead of entering their local
+    password.
 
 
 == Mapping users

@@ -36,6 +36,7 @@ de:
       admin_role: Administrationsrolle
       session_check_enabled: Session Check aktivieren
       session_check_users_csv: Komma-separierte Liste der Logins mit Session Check (* = alle)
+      sudo_mode_reauthenticate: Reauthentifizierung von Benutzern für sensible Aktionen über OIDC (wenn der sudo_mode aktiviert ist)
     error:
       permissions:
         heading: >-
