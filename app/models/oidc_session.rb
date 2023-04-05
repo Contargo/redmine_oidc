@@ -35,13 +35,14 @@ class OidcSession
     end
   end
 
-  def authorization_endpoint(redirect_uri:)
+  def authorization_endpoint(redirect_uri:, max_age: nil)
     @redirect_uri = redirect_uri
     save!
     oidc_client.authorization_uri(
       nonce: oidc_nonce,
       state: oidc_nonce,
       scope: oidc_scope,
+      max_age: max_age,
     )
   end
 
@@ -109,6 +110,12 @@ class OidcSession
 
   def id_token_expiration_timestamp
     decoded_id_token.raw_attributes['exp']
+  end
+
+  def auth_time
+    auth_time = decoded_id_token.raw_attributes['auth_time']
+    raise Exception.new("No auth_time in id_token") unless auth_time
+    auth_time
   end
 
   def authorized?

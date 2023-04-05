@@ -20,6 +20,7 @@ Rails.configuration.to_prepare do
   require_dependency 'redmine_oidc/application_controller_patch'
   require_dependency 'redmine_oidc/avatars_helper_patch'
   require_dependency 'redmine_oidc/hooks'
+  require_dependency 'redmine_oidc/sudo_mode_controller_patch'
 end
 
 module RedmineOidc

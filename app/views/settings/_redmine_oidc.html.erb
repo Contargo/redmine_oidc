@@ -48,4 +48,9 @@
   <%= text_field_tag 'settings[session_check_users_csv]', oidc_settings.session_check_users_csv, size: 60, placeholder: 'emusterfrau,jdoe' %>
   BETA
 </p>
+<p>
+  <%= label_tag 'settings[sudo_mode_reauthenticate]', l('oidc.settings.sudo_mode_reauthenticate') %>
+  <%= check_box_tag 'settings[sudo_mode_reauthenticate]', 1, oidc_settings.sudo_mode_reauthenticate %>
+  BETA
+</p>
 <%= error_messages_for oidc_settings %>

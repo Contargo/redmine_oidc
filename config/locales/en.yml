@@ -36,6 +36,7 @@ en:
       admin_role: Administration role
       session_check_enabled: Enable session check
       session_check_users_csv: Comma-separated list of logins with session check (* = all)
+      sudo_mode_reauthenticate: Reauthenticate users for sensitive actions via OIDC (if sudo mode is enabled)
     error:
       permissions:
         heading: >-

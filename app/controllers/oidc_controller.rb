@@ -22,9 +22,12 @@ class OidcController < ApplicationController
   skip_before_action :check_if_login_required
 
   def login
-    if !User.current.logged?
+    if params[:reauth] || !User.current.logged?
+      # max_age 0 forces the OIDC provider to reauthenticate the user and add
+      # the auth_time claim to the response.
       redirect_to OidcSession.spawn(session).authorization_endpoint(
-                    redirect_uri: oidc_callback_url(back_url: params[:back_url]))
+                    redirect_uri: oidc_callback_url(back_url: params[:back_url]),
+                    max_age: params[:reauth] ? 0 : nil)
     else
       redirect_to my_page_path
     end
@@ -34,7 +37,14 @@ class OidcController < ApplicationController
     oidc_session = OidcSession.spawn(session)
     oidc_session.update!(params)
     oidc_session.acquire!
-    oidc_session.authorized? ? login_user : lock_user
+
+    if session.has_key?(:oidc_sudo_deferred) && User.current.logged?
+      perform_sudo_action
+    elsif oidc_session.authorized?
+      login_user
+    else
+      lock_user
+    end
   rescue Exception => exception
     logger.error "#{exception.class}: #{exception.message}"
     render 'callback', :status => :loop_detected
@@ -107,6 +117,23 @@ class OidcController < ApplicationController
   def unsuccessful_login(user)
     user.errors.full_messages.each do |error|
       logger.warn "Could not create user #{user.login}: #{error}"
+    end
+  end
+
+  def perform_sudo_action
+    logger.info "Successful reauthentication for '#{User.current.login}' from #{request.remote_ip} at #{Time.now.utc}"
+
+    back_url = validate_back_url(params[:back_url].to_s)
+    action = session.delete(:oidc_sudo_deferred)
+
+    if back_url && action && action[:back_url] == params[:back_url]
+      if action[:options][:method] == :get
+        redirect_to(back_url)
+      else
+        repost(back_url, params: action[:params], options: action[:options])
+      end
+    else
+      redirect_to(my_page_path)
     end
   end
 
