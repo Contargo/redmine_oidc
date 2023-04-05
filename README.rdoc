@@ -87,6 +87,8 @@ admin_role::
     +realm_access.roles+.
 
     Example: ROLES/REDMINE/ADMIN
+create_user_if_not_exists::
+    Whether to create a user account for an authenticated user who does not already have one.
 
 
 == Mapping users
