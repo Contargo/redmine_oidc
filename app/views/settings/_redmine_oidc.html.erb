@@ -39,6 +39,14 @@
   <%= text_field_tag 'settings[admin_role]', oidc_settings.admin_role, size: 60 %>
 </p>
 <p>
+  <%= label_tag 'settings[groups_claim]', l('oidc.settings.groups_claim') %>
+  <%= text_field_tag 'settings[groups_claim]', oidc_settings.groups_claim, size: 60 %>
+</p>
+<p>
+  <%= label_tag 'settings[group_names_pattern]', l('oidc.settings.group_names_pattern') %>
+  <%= text_field_tag 'settings[group_names_pattern]', oidc_settings.group_names_pattern, size: 60, placeholder: l('oidc.settings.group_names_pattern_placeholder') %>
+</p>
+<p>
   <%= label_tag 'settings[session_check_enabled]', l('oidc.settings.session_check_enabled') %>
   <%= check_box_tag 'settings[session_check_enabled]', 1, oidc_settings.session_check_enabled %>
   BETA

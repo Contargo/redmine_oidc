@@ -86,6 +86,7 @@ class OidcController < ApplicationController
     user.activate
     user.random_password
     user.last_login_on = Time.now
+    update_groups(user)
     user.save ? successful_login(user) : unsuccessful_login(user)
   end
 
@@ -93,7 +94,32 @@ class OidcController < ApplicationController
     user.update(@oidc_session.user_attributes)
     user.activate
     user.update_last_login_on!
+    update_groups(user)
     user.save ? successful_login(user) : unsuccessful_login(user)
+  end
+
+  def update_groups(user)
+    return unless settings.update_groups?
+
+    current = user.groups.select { |group| settings.group_names_regexp.match?(group.name) }
+
+    target = @oidc_session.groups.map do |name|
+      begin
+        Group.named(name).first_or_create!(name: name)
+      rescue ActiveRecord::RecordInvalid => e
+        logger.error "Failed to create group #{name}: #{e}"
+      end
+    end
+
+    unless (added = target - current).empty?
+      logger.info "Adding user #{user.login} to groups: #{added.map(&:name).join(', ')}"
+      user.groups += added
+    end
+
+    unless (removed = current - target).empty?
+      logger.info "Removing user #{user.login} from groups: #{removed.map(&:name).join(', ')}"
+      user.groups -= removed
+    end
   end
 
   def successful_login(user)
@@ -110,4 +136,7 @@ class OidcController < ApplicationController
     end
   end
 
+  def settings
+    @settings ||= RedmineOidc.settings
+  end
 end

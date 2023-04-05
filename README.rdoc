@@ -87,6 +87,15 @@ admin_role::
     +realm_access.roles+.
 
     Example: ROLES/REDMINE/ADMIN
+groups_claim::
+    The claim which provides the set of groups (optional).
+
+    Example: +groups+
+group_names_pattern::
+    A regex pattern to filter names of user groups that should be synchronized.
+    Default is +.*+ (match all).
+
+    Example: +^(Red|Blue)$+
 
 
 == Mapping users
