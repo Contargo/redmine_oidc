@@ -73,7 +73,7 @@ module RedmineOidc
     end
 
     def group_names_regexp
-      @group_names_regexp ||= Regexp.new(@group_names_pattern || '.*', Regexp::IGNORECASE)
+      @group_names_regexp ||= Regexp.new(@group_names_pattern || '^$', Regexp::IGNORECASE)
     end
 
     def update_groups?
