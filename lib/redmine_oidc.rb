@@ -15,12 +15,16 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-Rails.configuration.to_prepare do
-  require_dependency 'redmine_oidc/account_controller_patch'
-  require_dependency 'redmine_oidc/application_controller_patch'
-  require_dependency 'redmine_oidc/avatars_helper_patch'
-  require_dependency 'redmine_oidc/hooks'
-end
+REDMINE_OIDC_REQUIRED_FILES = [
+  'redmine_oidc/account_controller_patch',
+  'redmine_oidc/application_controller_patch',
+  'redmine_oidc/avatars_helper_patch',
+  'redmine_oidc/hooks'
+]
+
+base_url = File.dirname(__FILE__)
+REDMINE_OIDC_REQUIRED_FILES.each { |file| require(base_url + '/' + file) }
+
 
 module RedmineOidc
   def self.settings
