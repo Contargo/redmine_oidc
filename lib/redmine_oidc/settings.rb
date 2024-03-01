@@ -31,6 +31,8 @@ module RedmineOidc
       roles_claim
       access_roles
       admin_role
+      groups_claim
+      group_names_pattern
       session_check_enabled
       session_check_users_csv
     )
@@ -68,6 +70,14 @@ module RedmineOidc
 
     def to_h
       serializable_hash
+    end
+
+    def group_names_regexp
+      @group_names_regexp ||= Regexp.new(@group_names_pattern || '^$', Regexp::IGNORECASE)
+    end
+
+    def update_groups?
+      !!@groups_claim
     end
 
     def session_check_users
