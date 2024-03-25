@@ -22,6 +22,7 @@ module RedmineOidc
 
     def self.included(base)
       base.class_eval do
+        include ERB::Util
         include InstanceMethods
 
         alias_method :avatar_without_oidc, :avatar
