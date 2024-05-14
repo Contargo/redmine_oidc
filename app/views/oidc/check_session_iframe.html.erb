@@ -38,15 +38,14 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
     window.addEventListener("message", receiveMessage, false);
     function receiveMessage(event) {
-        if (event.origin !== targetOrigin) {
-            return alert("Wrong target origin: " + targetOrigin);
-        }
-        state = event.data;
-        if ((state === "changed" ||
-             isTokenExpired(refreshTokenExpirationTimestamp)) && isTokenExpired(idTokenExpirationTimestamp)) {
+        if (event.origin === targetOrigin) {
+            state = event.data;
+            if ((state === "changed" ||
+                isTokenExpired(refreshTokenExpirationTimestamp)) && isTokenExpired(idTokenExpirationTimestamp)) {
             parent.window.clearInterval(parent.window.intervalId);
             return alert("<%= l('oidc.warning.session_expired') %>");
         }
+      }
     }
 
     function isTokenExpired(token) {
