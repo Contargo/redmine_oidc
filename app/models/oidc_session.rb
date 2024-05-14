@@ -92,6 +92,7 @@ class OidcSession
 
   def user_attributes
     attributes = decoded_id_token.raw_attributes
+    admin_key = Redmine::Plugin.installed?(:redmine_sudo) ? :sudoer : :admin
     {
       oidc_identifier: oidc_identifier,
       login: attributes['preferred_username'],
@@ -99,7 +100,7 @@ class OidcSession
       lastname: attributes['family_name'],
       mail: attributes['email'],
       avatar_url: attributes['picture'],
-      admin: roles.include?(admin_role),
+      "#{admin_key}": roles.include?(admin_role),
     }
   end
 
