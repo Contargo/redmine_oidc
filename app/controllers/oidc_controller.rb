@@ -82,11 +82,17 @@ class OidcController < ApplicationController
   end
 
   def create_user
-    user = User.create(@oidc_session.user_attributes)
-    user.activate
-    user.random_password
-    user.last_login_on = Time.now
-    user.save ? successful_login(user) : unsuccessful_login(user)
+    if settings.create_user_if_not_exists
+      user = User.create(@oidc_session.user_attributes)
+      user.activate
+      user.random_password
+      user.last_login_on = Time.now
+      user.save ? successful_login(user) : unsuccessful_login(user)
+    else
+      user_id = @oidc_session.user_attributes[:login] || @oidc_session.user_attributes[:oidc_identifier]
+      logger.info "User #{user_id} does not exist and creating new users by OIDC is disabled"
+      render 'lock_user', :status => :unauthorized
+    end
   end
 
   def update_user(user)
@@ -110,4 +116,7 @@ class OidcController < ApplicationController
     end
   end
 
+  def settings
+    @settings ||= RedmineOidc.settings
+  end
 end
