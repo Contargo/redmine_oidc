@@ -33,7 +33,9 @@ module RedmineOidc
     module InstanceMethods
       def avatar_with_oidc(user, options = {})
         if RedmineOidc.settings.enabled && user.is_a?(User) && user.avatar_url.present?
-          options[:class] = GravatarHelper::DEFAULT_OPTIONS[:class] + " " + options[:class] if options[:class]
+          options[:class] = ['avatar',
+                             GravatarHelper::DEFAULT_OPTIONS[:class],
+                             options[:class]].compact.join(' ')
           options = GravatarHelper::DEFAULT_OPTIONS.merge(options)
           [:class, :alt, :title].each {|opt| options[opt] = h(options[opt])}
           options = options.except(:width, :height) if options.has_key? :size
