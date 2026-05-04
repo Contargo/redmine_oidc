@@ -39,6 +39,10 @@
   <%= text_field_tag 'settings[admin_role]', oidc_settings.admin_role, size: 60 %>
 </p>
 <p>
+  <%= label_tag 'settings[create_user_if_not_exists]', l('oidc.settings.create_user_if_not_exists') %>
+  <%= check_box_tag 'settings[create_user_if_not_exists]', 1, oidc_settings.create_user_if_not_exists %>
+</p>
+<p>
   <%= label_tag 'settings[session_check_enabled]', l('oidc.settings.session_check_enabled') %>
   <%= check_box_tag 'settings[session_check_enabled]', 1, oidc_settings.session_check_enabled %>
   BETA

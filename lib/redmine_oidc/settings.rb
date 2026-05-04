@@ -31,6 +31,7 @@ module RedmineOidc
       roles_claim
       access_roles
       admin_role
+      create_user_if_not_exists
       session_check_enabled
       session_check_users_csv
     )
