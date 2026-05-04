@@ -34,6 +34,9 @@ de:
       roles_claim_placeholder: roles
       access_roles: Leerzeichen-separierte Liste der autorisierten Rollen
       admin_role: Administrationsrolle
+      groups_claim: Gruppe-Claim (optional)
+      group_names_pattern: Regex zum Filtern der Namen von Gruppen, die synchronisiert werden sollen
+      group_names_pattern_placeholder: ^$
       session_check_enabled: Session Check aktivieren
       session_check_users_csv: Komma-separierte Liste der Logins mit Session Check (* = alle)
     error:

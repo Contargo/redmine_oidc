@@ -104,6 +104,16 @@ class OidcSession
     }
   end
 
+  def groups
+    @groups ||= if settings.update_groups?
+      (decoded_id_token.raw_attributes[settings.groups_claim] || [])
+        .select { |name| settings.group_names_regexp.match?(name) }
+        .to_set
+    else
+      Set.new
+    end
+  end
+
   def refresh_token_expiration_timestamp
     decoded_refresh_token['exp']
   end
